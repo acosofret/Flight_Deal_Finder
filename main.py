@@ -9,6 +9,8 @@ from data_manager import *
 # test the sheety api connection:
 
 SHEETY_ENDPOINT = my_sheety_endpoint # saved in my_vars file, under .gitignore;
+TEQUILA_ENDPOINT = my_tequila_endpoint
+TEQUILA_API_KEY = my_tequila_api_key
 
 get_sheet_data = requests.get(url=SHEETY_ENDPOINT)
 result = get_sheet_data.json()
@@ -21,7 +23,8 @@ destinations_sheet_data = result["prices"]
 for location in destinations_sheet_data:
 	if location["iataCode"] == "":
 		iata_code_search = FlightSearch()
-		location["iataCode"] = iata_code_search.get_iata_code(location["city"])
+		location["iataCode"] = iata_code_search.get_iata_code(destination=location["city"], TEQUILA_ENDPOINT=TEQUILA_ENDPOINT, TEQUILA_API_KEY=TEQUILA_API_KEY)
+		print(destinations_sheet_data)
 		# At this point, our code checks if "IATA code" cell is empty and it tells what value should it be.
 		# Now we get the code (thru the data_manager module) to update this new value on the spreadsheet:
 		row_edit_endpoint = f"{SHEETY_ENDPOINT}/{location["id"]}"
