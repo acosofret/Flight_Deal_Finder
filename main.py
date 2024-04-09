@@ -24,7 +24,6 @@ for location in destinations_sheet_data:
 	if location["iataCode"] == "":
 		iata_code_search = FlightSearch()
 		location["iataCode"] = iata_code_search.get_iata_code(destination=location["city"], TEQUILA_ENDPOINT=TEQUILA_ENDPOINT, TEQUILA_API_KEY=TEQUILA_API_KEY)
-		print(destinations_sheet_data)
 		# At this point, our code checks if "IATA code" cell is empty and it tells what value should it be.
 		# Now we get the code (thru the data_manager module) to update this new value on the spreadsheet:
 		row_edit_endpoint = f"{SHEETY_ENDPOINT}/{location["id"]}"
@@ -35,6 +34,6 @@ for location in destinations_sheet_data:
 		}
 		iata_code_update = DataManager(location).update_iata_codes(update_endpoint=row_edit_endpoint, new_data=new_data)
 
-# At this stage out code checks if IATA code" cell is empty and corrects it with a testing "TEST" value.
-# Next we get the IATA Codes using the Kiwi Partners API
+# At this stage out code checks if IATA code" cell is empty and corrects it with the right code (getting it from Tequila API by Kiwi.com).
+# Next we search for Cheap Flights
 
