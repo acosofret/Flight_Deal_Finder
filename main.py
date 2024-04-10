@@ -34,6 +34,17 @@ for location in destinations_sheet_data:
 		}
 		iata_code_update = DataManager(location).update_iata_codes(update_endpoint=row_edit_endpoint, new_data=new_data)
 
-# At this stage out code checks if IATA code" cell is empty and corrects it with the right code (getting it from Tequila API by Kiwi.com).
-# Next we search for Cheap Flights
-
+# At this stage out code checks if 'IATA code' cell is empty and corrects it with the right code (getting it from Tequila API by Kiwi.com).
+# Next we search for Cheap Flights:
+	where_from = "LTN"
+	where_to = location["iataCode"]
+	from_date = "11/04/2024"
+	to_date = "11/04/2024"
+	min_length = 1
+	max_length = 1
+	stops = 0
+	currency = "GBP"
+	flight_searcher = FlightSearch()
+	flights_data = flight_searcher.search_flights(departure=where_from, destination=where_to, date_from=from_date, date_to=to_date, stay_length_from=min_length, stay_length_to=max_length, max_stopovers=stops, currency=currency, TEQUILA_ENDPOINT=my_tequila_endpoint, TEQUILA_API_KEY=my_tequila_api_key)
+	#flights = flights_data
+	print(type(flights_data))
