@@ -5,6 +5,7 @@ from my_vars import *
 from pprint import pprint # to see the json() data formatted nicely
 from flight_search import FlightSearch
 from data_manager import *
+from datetime import datetime, timedelta
 
 # test the sheety api connection:
 
@@ -38,13 +39,11 @@ for location in destinations_sheet_data:
 # Next we search for Cheap Flights:
 	where_from = "LTN"
 	where_to = location["iataCode"]
-	from_date = "11/04/2024"
-	to_date = "11/04/2024"
-	min_length = 1
-	max_length = 1
+	from_date = (datetime.now() + timedelta(days=1)).strftime("%d/%m/%Y") # we use .strftime method to convert it as required by Tequila API
+	to_date = (datetime.now() + timedelta(days=180)).strftime("%d/%m/%Y")
+	min_length = 5
+	max_length = 7
 	stops = 0
 	currency = "GBP"
 	flight_searcher = FlightSearch()
 	flights_data = flight_searcher.search_flights(departure=where_from, destination=where_to, date_from=from_date, date_to=to_date, stay_length_from=min_length, stay_length_to=max_length, max_stopovers=stops, currency=currency, TEQUILA_ENDPOINT=my_tequila_endpoint, TEQUILA_API_KEY=my_tequila_api_key)
-	#flights = flights_data
-	print(type(flights_data))
