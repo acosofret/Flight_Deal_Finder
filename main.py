@@ -7,6 +7,7 @@ from flight_search import FlightSearch
 from data_manager import *
 from datetime import datetime, timedelta
 from notification_manager import NotificationManager
+from customers import NewCustomer
 
 # test the sheety api connection:
 
@@ -19,6 +20,11 @@ TWILIO_AUTH_TOKEN = my_twilio_auth_token
 MY_PHONE_NUMBER = my_phone_number
 MY_TWILIO_NUMBER = my_twilio_number # this twilio number has limited usage, unless account is upgraded
 
+# Sign up new users:
+new_user = NewCustomer()
+new_user_signed = new_user.add_new_user(update_endpoint= my_users_spreadsheet, new_data=new_user.user_data)
+
+# Chech the destinations spredsheet and Update IATA codes for flight search purposes
 get_sheet_data = requests.get(url=SHEETY_ENDPOINT)
 result = get_sheet_data.json()
 destinations_sheet_data = result["prices"]
@@ -61,9 +67,10 @@ for location in destinations_sheet_data:
 	else:
 		for flight in flights_data:
 			message += f"\n{flight["cityTo"]} Price Alert !!!\nFrom {flight["cityFrom"]} {flight["flyFrom"]} to {flight["cityTo"]} {flight["flyTo"]} for ONLY £{flight["price"]} !!!\nDeparture: {flight["local_departure"].split("T")[0]}, at {(flight["local_departure"].split("T")[1]).split(".")[0]}\nReturn: {flight["route"][1]["local_arrival"].split("T")[0]}, at {(flight["route"][1]["local_arrival"].split("T")[1]).split(".")[0]}\n (To include long links requires upgrade" #Seats going fast !!! Reserve yours now: {flight["deep_link"]}\n"
-#Now that we got the right response in the 'message' variable(tested  through "print" function), we send it via SMS:
-notification = NotificationManager()
-notification.send_sms_notification(message_body=message)
+# print(message) # For testing only
+# #Now that we got the right response in the 'message' variable(tested  through "print" function), we send it via SMS:
+# notification = NotificationManager()
+# notification.send_sms_notification(message_body=message)
 
 
 

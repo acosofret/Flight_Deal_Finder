@@ -12,6 +12,9 @@ class DataManager:
         # else:
         #     print("Error:", response.status_code)
         # print(response.text)
+    def sign_user(self, endpoint, user_data):
+        response = requests.put(url=endpoint, json=user_data)
+
 
 
     #This class is responsible for talking to the Google Sheet.
