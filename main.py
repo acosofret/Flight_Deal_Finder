@@ -8,10 +8,12 @@ from data_manager import *
 from datetime import datetime, timedelta
 from notification_manager import NotificationManager
 from customers import NewCustomer
+import pprint
 
 # test the sheety api connection:
 
 SHEETY_ENDPOINT = my_sheety_endpoint # saved in my_vars file, under .gitignore;
+USERS_SHEET = my_users_spreadsheet
 TEQUILA_ENDPOINT = my_tequila_endpoint
 TEQUILA_API_KEY = my_tequila_api_key
 TWILIO_ENDPOINT = "https://api.twilio.com/2010-04-01"
@@ -19,10 +21,12 @@ TWILIO_ACC_SID = my_twilio_acc_sid
 TWILIO_AUTH_TOKEN = my_twilio_auth_token
 MY_PHONE_NUMBER = my_phone_number
 MY_TWILIO_NUMBER = my_twilio_number # this twilio number has limited usage, unless account is upgraded
+MY_EMAIL = my_email
+MY_PASSWORD = my_email_password
 
-# Sign up new users:
-new_user = NewCustomer()
-new_user_signed = new_user.add_new_user(update_endpoint= my_users_spreadsheet, new_data=new_user.user_data)
+# # Sign up new users:
+# new_user = NewCustomer()
+# new_user_signed = new_user.add_new_user(update_endpoint= my_users_spreadsheet, new_data=new_user.user_data)
 
 # Chech the destinations spredsheet and Update IATA codes for flight search purposes
 get_sheet_data = requests.get(url=SHEETY_ENDPOINT)
@@ -63,14 +67,50 @@ for location in destinations_sheet_data:
 	flights_data = flight_searcher.search_flights(departure=where_from, destination=where_to, date_from=from_date, date_to=to_date, stay_length_from=min_length, stay_length_to=max_length, max_stopovers=stops, currency=currency, budget=budget,TEQUILA_ENDPOINT=my_tequila_endpoint, TEQUILA_API_KEY=my_tequila_api_key)
 
 	if len(flights_data) == 0 :
-		message += f"\n{location["city"]}: No flights within budgets yet.\n"
+		message += f"\n{location["city"]}: No direct flights within budget yet.\n"
+		flights_1_stop_data = flight_searcher.search_flights(departure=where_from, destination=where_to, date_from=from_date,
+													  date_to=to_date, stay_length_from=min_length,
+													  stay_length_to=max_length, max_stopovers=(stops+1), currency=currency,
+													  budget=budget, TEQUILA_ENDPOINT=my_tequila_endpoint,
+													  TEQUILA_API_KEY=my_tequila_api_key)
+		if len(flights_1_stop_data) == 0:
+			flights_2_stops_data = flight_searcher.search_flights(departure=where_from, destination=where_to,
+																 date_from=from_date,
+																 date_to=to_date, stay_length_from=min_length,
+																 stay_length_to=max_length, max_stopovers=(stops + 2),
+																 currency=currency,
+																 budget=budget, TEQUILA_ENDPOINT=my_tequila_endpoint,
+																 TEQUILA_API_KEY=my_tequila_api_key)
+			if len(flights_2_stops_data) == 0:
+				message += f"\n{location["city"]}: No flights within budget yet.\n"
+			else:
+				for flight in flights_2_stops_data:
+					message += f"\n{flight["cityTo"]} Price Alert !!!\nFrom {flight["cityFrom"]} {flight["flyFrom"]} to {flight["cityTo"]} {flight["flyTo"]} for ONLY £{flight["price"]} !!!\nDeparture: {flight["local_departure"].split("T")[0]}, at {(flight["local_departure"].split("T")[1]).split(".")[0]}\nReturn: {flight["route"][1]["local_arrival"].split("T")[0]}, at {(flight["route"][1]["local_arrival"].split("T")[1]).split(".")[0]}\n!!! This flight has 2 STOPS. Seats going fast !!! Reserve yours now: {flight["deep_link"]}\n"
+		else:
+			for flight in flights_1_stop_data:
+				message += f"\n{flight["cityTo"]} Price Alert !!!\nFrom {flight["cityFrom"]} {flight["flyFrom"]} to {flight["cityTo"]} {flight["flyTo"]} for ONLY £{flight["price"]} !!!\nDeparture: {flight["local_departure"].split("T")[0]}, at {(flight["local_departure"].split("T")[1]).split(".")[0]}\nReturn: {flight["route"][1]["local_arrival"].split("T")[0]}, at {(flight["route"][1]["local_arrival"].split("T")[1]).split(".")[0]}\n!!! This flight has 1 STOP. Seats going fast !!! Reserve yours now: {flight["deep_link"]}\n"
+
 	else:
 		for flight in flights_data:
 			message += f"\n{flight["cityTo"]} Price Alert !!!\nFrom {flight["cityFrom"]} {flight["flyFrom"]} to {flight["cityTo"]} {flight["flyTo"]} for ONLY £{flight["price"]} !!!\nDeparture: {flight["local_departure"].split("T")[0]}, at {(flight["local_departure"].split("T")[1]).split(".")[0]}\nReturn: {flight["route"][1]["local_arrival"].split("T")[0]}, at {(flight["route"][1]["local_arrival"].split("T")[1]).split(".")[0]}\n (To include long links requires upgrade" #Seats going fast !!! Reserve yours now: {flight["deep_link"]}\n"
 # print(message) # For testing only
-# #Now that we got the right response in the 'message' variable(tested  through "print" function), we send it via SMS:
-# notification = NotificationManager()
+
+# #Now that we got the right response in the 'message' variable(tested  through "print" function), we send it as a notification:
+
+# But first we need a list with contact details to all customers:
+users_data_call = requests.get(url=USERS_SHEET)
+users_data = users_data_call.json()
+email_list = users_data["users"]
+# print(email_list) # for testing only
+
+# Now that we know who we are sending it, let's actually send the notifications:
+notification = NotificationManager()
+## via SMS:
 # notification.send_sms_notification(message_body=message)
+
+# Sending SMS oads operational costs, so alternatively we can send notification by email, with th additional advantage that we are not restricted by characters number, etc:
+for contact in email_list:
+	notification.send_email_notification(my_email=MY_EMAIL, password=MY_PASSWORD, customer=contact["email"], message_body=f"Hi {contact["firstName"]}\n{message}".encode('utf-8'))
 
 
 

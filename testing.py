@@ -84,3 +84,10 @@
  'throw_away_ticketing': False,
  'hidden_city_ticketing': False,
  'virtual_interlining': False}
+
+# import smtplib
+# with smtplib.SMTP("smtp.gmail.com") as connection:
+# 	connection.starttls()
+# 	connection.login(user="dev.testandrei@gmail.com", password="ited qvkm yaho npbt")
+# 	connection.sendmail(from_addr="dev.testandrei@gmail.com", to_addrs="eazyms13@yahoo.com", msg="TEST Successful")
+

@@ -16,6 +16,5 @@ class DataManager:
         response = requests.put(url=endpoint, json=user_data)
 
 
-
     #This class is responsible for talking to the Google Sheet.
     pass
